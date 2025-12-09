@@ -4,7 +4,8 @@ use {
     solana_instruction::Instruction,
     solana_pubkey::Pubkey,
     solana_rent::Rent,
-    solana_stake_interface::{stake_history::StakeHistory, state::StakeStateV2},
+    solana_stake_client::StakeStateAccount,
+    solana_stake_interface::stake_history::StakeHistory,
     solana_sysvar_id::SysvarId,
     std::collections::HashMap,
 };
@@ -15,7 +16,7 @@ pub const STAKE_RENT_EXEMPTION: u64 = 2_282_880;
 #[test]
 fn assert_stake_rent_exemption() {
     assert_eq!(
-        Rent::default().minimum_balance(StakeStateV2::size_of()),
+        Rent::default().minimum_balance(StakeStateAccount::size_of()),
         STAKE_RENT_EXEMPTION
     );
 }

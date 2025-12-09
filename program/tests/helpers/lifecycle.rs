@@ -1,6 +1,7 @@
 use {
     super::utils::STAKE_RENT_EXEMPTION, solana_account::AccountSharedData,
-    solana_stake_interface::state::StakeStateV2, solana_stake_program::id,
+    solana_stake_client::StakeStateAccount, solana_stake_interface::state::StakeStateV2,
+    solana_stake_program::id,
 };
 
 /// Lifecycle states for stake accounts in tests
@@ -22,7 +23,7 @@ impl StakeLifecycle {
         AccountSharedData::new_data_with_space(
             STAKE_RENT_EXEMPTION,
             &StakeStateV2::Uninitialized,
-            StakeStateV2::size_of(),
+            StakeStateAccount::size_of(),
             &id(),
         )
         .unwrap()

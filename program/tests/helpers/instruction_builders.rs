@@ -1,31 +1,47 @@
 use {
-    super::context::StakeTestContext,
-    mollusk_svm::result::Check,
-    solana_account::AccountSharedData,
-    solana_instruction::Instruction,
-    solana_pubkey::Pubkey,
-    solana_stake_interface::{
-        instruction as ixn,
-        state::{Authorized, Lockup},
-    },
+    super::context::StakeTestContext, mollusk_svm::result::Check,
+    solana_account::AccountSharedData, solana_instruction::Instruction, solana_pubkey::Pubkey,
+    std::collections::HashMap,
 };
 
-// Trait for instruction configuration that builds instruction and accounts
-pub trait InstructionConfig {
-    fn build_instruction(&self, ctx: &StakeTestContext) -> Instruction;
-    fn build_accounts(&self) -> Vec<(Pubkey, AccountSharedData)>;
-}
-
-/// Execution builder with validation and signer testing
+/// Execution builder with account data, validation, and signer testing
 pub struct InstructionExecution<'a, 'b> {
     instruction: Instruction,
-    accounts: Vec<(Pubkey, AccountSharedData)>,
+    accounts: HashMap<Pubkey, AccountSharedData>,
     ctx: &'a StakeTestContext,
     checks: Option<&'b [Check<'b>]>,
     test_missing_signers: Option<bool>, // `None` runs if `Check::success`
 }
 
-impl<'b> InstructionExecution<'_, 'b> {
+impl<'a, 'b> InstructionExecution<'a, 'b> {
+    pub(crate) fn new(instruction: Instruction, ctx: &'a StakeTestContext) -> Self {
+        Self {
+            instruction,
+            accounts: HashMap::new(),
+            ctx,
+            checks: None,
+            test_missing_signers: None,
+        }
+    }
+
+    /// Add account data for a specific pubkey
+    #[inline(always)]
+    pub fn account(mut self, pubkey: Pubkey, data: AccountSharedData) -> Self {
+        self.accounts.insert(pubkey, data);
+        self
+    }
+
+    /// Add multiple accounts at once from an iterator
+    #[allow(dead_code)]
+    #[inline(always)]
+    pub fn accounts(
+        mut self,
+        accounts: impl IntoIterator<Item = (Pubkey, AccountSharedData)>,
+    ) -> Self {
+        self.accounts.extend(accounts);
+        self
+    }
+
     pub fn checks(mut self, checks: &'b [Check<'b>]) -> Self {
         self.checks = Some(checks);
         self
@@ -48,58 +64,23 @@ impl<'b> InstructionExecution<'_, 'b> {
 
         let test_missing_signers = self.test_missing_signers.unwrap_or(true);
 
+        // Build account list from instruction account metas
+        let accounts_with_data: Vec<(Pubkey, AccountSharedData)> = self
+            .instruction
+            .accounts
+            .iter()
+            .filter_map(|meta| {
+                self.accounts
+                    .get(&meta.pubkey)
+                    .map(|data| (meta.pubkey, data.clone()))
+            })
+            .collect();
+
         self.ctx.process_instruction_maybe_test_signers(
             &self.instruction,
-            self.accounts,
+            accounts_with_data,
             checks,
             test_missing_signers,
         )
-    }
-}
-
-impl<'a> InstructionExecution<'a, '_> {
-    pub(crate) fn new(
-        instruction: Instruction,
-        accounts: Vec<(Pubkey, AccountSharedData)>,
-        ctx: &'a StakeTestContext,
-    ) -> Self {
-        Self {
-            instruction,
-            accounts,
-            ctx,
-            checks: None,
-            test_missing_signers: None,
-        }
-    }
-}
-
-pub struct InitializeConfig<'a> {
-    pub stake: (&'a Pubkey, &'a AccountSharedData),
-    pub authorized: &'a Authorized,
-    pub lockup: &'a Lockup,
-}
-
-impl InstructionConfig for InitializeConfig<'_> {
-    fn build_instruction(&self, _ctx: &StakeTestContext) -> Instruction {
-        ixn::initialize(self.stake.0, self.authorized, self.lockup)
-    }
-
-    fn build_accounts(&self) -> Vec<(Pubkey, AccountSharedData)> {
-        vec![(*self.stake.0, self.stake.1.clone())]
-    }
-}
-
-pub struct InitializeCheckedConfig<'a> {
-    pub stake: (&'a Pubkey, &'a AccountSharedData),
-    pub authorized: &'a Authorized,
-}
-
-impl InstructionConfig for InitializeCheckedConfig<'_> {
-    fn build_instruction(&self, _ctx: &StakeTestContext) -> Instruction {
-        ixn::initialize_checked(self.stake.0, self.authorized)
-    }
-
-    fn build_accounts(&self) -> Vec<(Pubkey, AccountSharedData)> {
-        vec![(*self.stake.0, self.stake.1.clone())]
     }
 }

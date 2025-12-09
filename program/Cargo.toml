@@ -42,6 +42,7 @@ solana-program-test = "3.0.10"
 solana-sdk-ids = "3.0.0"
 solana-signature = "3.0.0"
 solana-signer = "3.0.0"
+solana-stake-client = { version = "0.0.0", path = "../clients/rust", features = ["serde"] }
 solana-svm-log-collector = "3.0.0"
 solana-system-interface = { version = "2.0.0", features = ["bincode"] }
 solana-transaction = "3.0.0"

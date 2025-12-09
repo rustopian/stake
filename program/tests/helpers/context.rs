@@ -1,6 +1,6 @@
 use {
     super::{
-        instruction_builders::{InstructionConfig, InstructionExecution},
+        instruction_builders::InstructionExecution,
         lifecycle::StakeLifecycle,
         utils::{add_sysvars, STAKE_RENT_EXEMPTION},
     },
@@ -57,16 +57,19 @@ impl StakeTestContext {
         StakeAccountBuilder { lifecycle }
     }
 
-    /// Process an instruction
-    pub fn process_with<'b, C: InstructionConfig>(
-        &self,
-        config: C,
-    ) -> InstructionExecution<'_, 'b> {
-        InstructionExecution::new(
-            config.build_instruction(self),
-            config.build_accounts(),
-            self,
-        )
+    /// Process a Codama-generated instruction
+    ///
+    /// Returns an `InstructionExecution` builder for adding accounts, checks, and executing.
+    ///
+    /// Example:
+    /// ```
+    /// ctx.process(initialize_instruction)
+    ///     .account(stake, stake_account)
+    ///     .checks(&[Check::success()])
+    ///     .execute();
+    /// ```
+    pub fn process(&self, instruction: Instruction) -> InstructionExecution<'_, '_> {
+        InstructionExecution::new(instruction, self)
     }
 
     /// Process an instruction with optional missing signer testing
