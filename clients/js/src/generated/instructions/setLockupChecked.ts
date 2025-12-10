@@ -16,7 +16,6 @@ import {
   getU32Encoder,
   transformEncoder,
   type AccountMeta,
-  type AccountSignerMeta,
   type Address,
   type Codec,
   type Decoder,
@@ -26,13 +25,9 @@ import {
   type InstructionWithData,
   type Option,
   type OptionOrNullable,
-  type ReadonlySignerAccount,
   type ReadonlyUint8Array,
-  type TransactionSigner,
-  type WritableAccount,
 } from '@solana/kit';
 import { STAKE_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 import {
   getEpochDecoder,
   getEpochEncoder,
@@ -52,35 +47,10 @@ export function getSetLockupCheckedDiscriminatorBytes() {
 
 export type SetLockupCheckedInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountStake extends string | AccountMeta<string> = string,
-  TAccountAuthority extends string | AccountMeta<string> = string,
-  TAccountNewAuthority extends
-    | string
-    | AccountMeta<string>
-    | undefined = undefined,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountStake extends string
-        ? WritableAccount<TAccountStake>
-        : TAccountStake,
-      TAccountAuthority extends string
-        ? ReadonlySignerAccount<TAccountAuthority> &
-            AccountSignerMeta<TAccountAuthority>
-        : TAccountAuthority,
-      ...(TAccountNewAuthority extends undefined
-        ? []
-        : [
-            TAccountNewAuthority extends string
-              ? ReadonlySignerAccount<TAccountNewAuthority> &
-                  AccountSignerMeta<TAccountNewAuthority>
-              : TAccountNewAuthority,
-          ]),
-      ...TRemainingAccounts,
-    ]
-  >;
+  InstructionWithAccounts<TRemainingAccounts>;
 
 export type SetLockupCheckedInstructionData = {
   discriminator: number;
@@ -122,122 +92,43 @@ export function getSetLockupCheckedInstructionDataCodec(): Codec<
   );
 }
 
-export type SetLockupCheckedInput<
-  TAccountStake extends string = string,
-  TAccountAuthority extends string = string,
-  TAccountNewAuthority extends string = string,
-> = {
-  /** Initialized stake account */
-  stake: Address<TAccountStake>;
-  /** Lockup authority or withdraw authority */
-  authority: TransactionSigner<TAccountAuthority>;
-  /** New lockup authority */
-  newAuthority?: TransactionSigner<TAccountNewAuthority>;
+export type SetLockupCheckedInput = {
   unixTimestamp: SetLockupCheckedInstructionDataArgs['unixTimestamp'];
   epoch: SetLockupCheckedInstructionDataArgs['epoch'];
 };
 
 export function getSetLockupCheckedInstruction<
-  TAccountStake extends string,
-  TAccountAuthority extends string,
-  TAccountNewAuthority extends string,
   TProgramAddress extends Address = typeof STAKE_PROGRAM_ADDRESS,
 >(
-  input: SetLockupCheckedInput<
-    TAccountStake,
-    TAccountAuthority,
-    TAccountNewAuthority
-  >,
+  input: SetLockupCheckedInput,
   config?: { programAddress?: TProgramAddress }
-): SetLockupCheckedInstruction<
-  TProgramAddress,
-  TAccountStake,
-  TAccountAuthority,
-  TAccountNewAuthority
-> {
+): SetLockupCheckedInstruction<TProgramAddress> {
   // Program address.
   const programAddress = config?.programAddress ?? STAKE_PROGRAM_ADDRESS;
-
-  // Original accounts.
-  const originalAccounts = {
-    stake: { value: input.stake ?? null, isWritable: true },
-    authority: { value: input.authority ?? null, isWritable: false },
-    newAuthority: { value: input.newAuthority ?? null, isWritable: false },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
 
   // Original args.
   const args = { ...input };
 
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'omitted');
   return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.stake),
-      getAccountMeta(accounts.authority),
-      getAccountMeta(accounts.newAuthority),
-    ].filter(<T>(x: T | undefined): x is T => x !== undefined),
     data: getSetLockupCheckedInstructionDataEncoder().encode(
       args as SetLockupCheckedInstructionDataArgs
     ),
     programAddress,
-  } as SetLockupCheckedInstruction<
-    TProgramAddress,
-    TAccountStake,
-    TAccountAuthority,
-    TAccountNewAuthority
-  >);
+  } as SetLockupCheckedInstruction<TProgramAddress>);
 }
 
 export type ParsedSetLockupCheckedInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
   programAddress: Address<TProgram>;
-  accounts: {
-    /** Initialized stake account */
-    stake: TAccountMetas[0];
-    /** Lockup authority or withdraw authority */
-    authority: TAccountMetas[1];
-    /** New lockup authority */
-    newAuthority?: TAccountMetas[2] | undefined;
-  };
   data: SetLockupCheckedInstructionData;
 };
 
-export function parseSetLockupCheckedInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
->(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
-): ParsedSetLockupCheckedInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 2) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
-  let optionalAccountsRemaining = instruction.accounts.length - 2;
-  const getNextOptionalAccount = () => {
-    if (optionalAccountsRemaining === 0) return undefined;
-    optionalAccountsRemaining -= 1;
-    return getNextAccount();
-  };
+export function parseSetLockupCheckedInstruction<TProgram extends string>(
+  instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>
+): ParsedSetLockupCheckedInstruction<TProgram> {
   return {
     programAddress: instruction.programAddress,
-    accounts: {
-      stake: getNextAccount(),
-      authority: getNextAccount(),
-      newAuthority: getNextOptionalAccount(),
-    },
     data: getSetLockupCheckedInstructionDataDecoder().decode(instruction.data),
   };
 }

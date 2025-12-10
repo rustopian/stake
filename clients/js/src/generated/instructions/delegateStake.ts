@@ -14,7 +14,6 @@ import {
   getU32Encoder,
   transformEncoder,
   type AccountMeta,
-  type AccountSignerMeta,
   type Address,
   type FixedSizeCodec,
   type FixedSizeDecoder,
@@ -22,14 +21,9 @@ import {
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
-  type ReadonlyAccount,
-  type ReadonlySignerAccount,
   type ReadonlyUint8Array,
-  type TransactionSigner,
-  type WritableAccount,
 } from '@solana/kit';
 import { STAKE_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const DELEGATE_STAKE_DISCRIMINATOR = 2;
 
@@ -39,43 +33,10 @@ export function getDelegateStakeDiscriminatorBytes() {
 
 export type DelegateStakeInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountStake extends string | AccountMeta<string> = string,
-  TAccountVote extends string | AccountMeta<string> = string,
-  TAccountClockSysvar extends
-    | string
-    | AccountMeta<string> = 'SysvarC1ock11111111111111111111111111111111',
-  TAccountStakeHistory extends
-    | string
-    | AccountMeta<string> = 'SysvarStakeHistory1111111111111111111111111',
-  TAccountUnused extends string | AccountMeta<string> = string,
-  TAccountStakeAuthority extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountStake extends string
-        ? WritableAccount<TAccountStake>
-        : TAccountStake,
-      TAccountVote extends string
-        ? ReadonlyAccount<TAccountVote>
-        : TAccountVote,
-      TAccountClockSysvar extends string
-        ? ReadonlyAccount<TAccountClockSysvar>
-        : TAccountClockSysvar,
-      TAccountStakeHistory extends string
-        ? ReadonlyAccount<TAccountStakeHistory>
-        : TAccountStakeHistory,
-      TAccountUnused extends string
-        ? ReadonlyAccount<TAccountUnused>
-        : TAccountUnused,
-      TAccountStakeAuthority extends string
-        ? ReadonlySignerAccount<TAccountStakeAuthority> &
-            AccountSignerMeta<TAccountStakeAuthority>
-        : TAccountStakeAuthority,
-      ...TRemainingAccounts,
-    ]
-  >;
+  InstructionWithAccounts<TRemainingAccounts>;
 
 export type DelegateStakeInstructionData = { discriminator: number };
 
@@ -102,155 +63,31 @@ export function getDelegateStakeInstructionDataCodec(): FixedSizeCodec<
   );
 }
 
-export type DelegateStakeInput<
-  TAccountStake extends string = string,
-  TAccountVote extends string = string,
-  TAccountClockSysvar extends string = string,
-  TAccountStakeHistory extends string = string,
-  TAccountUnused extends string = string,
-  TAccountStakeAuthority extends string = string,
-> = {
-  /** Initialized stake account to be delegated */
-  stake: Address<TAccountStake>;
-  /** Vote account to which this stake will be delegated */
-  vote: Address<TAccountVote>;
-  /** Clock sysvar */
-  clockSysvar?: Address<TAccountClockSysvar>;
-  /** Stake history sysvar that carries stake warmup/cooldown history */
-  stakeHistory?: Address<TAccountStakeHistory>;
-  /** Unused account, formerly the stake config */
-  unused: Address<TAccountUnused>;
-  /** Stake authority */
-  stakeAuthority: TransactionSigner<TAccountStakeAuthority>;
-};
+export type DelegateStakeInput = {};
 
 export function getDelegateStakeInstruction<
-  TAccountStake extends string,
-  TAccountVote extends string,
-  TAccountClockSysvar extends string,
-  TAccountStakeHistory extends string,
-  TAccountUnused extends string,
-  TAccountStakeAuthority extends string,
   TProgramAddress extends Address = typeof STAKE_PROGRAM_ADDRESS,
->(
-  input: DelegateStakeInput<
-    TAccountStake,
-    TAccountVote,
-    TAccountClockSysvar,
-    TAccountStakeHistory,
-    TAccountUnused,
-    TAccountStakeAuthority
-  >,
-  config?: { programAddress?: TProgramAddress }
-): DelegateStakeInstruction<
-  TProgramAddress,
-  TAccountStake,
-  TAccountVote,
-  TAccountClockSysvar,
-  TAccountStakeHistory,
-  TAccountUnused,
-  TAccountStakeAuthority
-> {
+>(config?: {
+  programAddress?: TProgramAddress;
+}): DelegateStakeInstruction<TProgramAddress> {
   // Program address.
   const programAddress = config?.programAddress ?? STAKE_PROGRAM_ADDRESS;
 
-  // Original accounts.
-  const originalAccounts = {
-    stake: { value: input.stake ?? null, isWritable: true },
-    vote: { value: input.vote ?? null, isWritable: false },
-    clockSysvar: { value: input.clockSysvar ?? null, isWritable: false },
-    stakeHistory: { value: input.stakeHistory ?? null, isWritable: false },
-    unused: { value: input.unused ?? null, isWritable: false },
-    stakeAuthority: { value: input.stakeAuthority ?? null, isWritable: false },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
-
-  // Resolve default values.
-  if (!accounts.clockSysvar.value) {
-    accounts.clockSysvar.value =
-      'SysvarC1ock11111111111111111111111111111111' as Address<'SysvarC1ock11111111111111111111111111111111'>;
-  }
-  if (!accounts.stakeHistory.value) {
-    accounts.stakeHistory.value =
-      'SysvarStakeHistory1111111111111111111111111' as Address<'SysvarStakeHistory1111111111111111111111111'>;
-  }
-
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'omitted');
   return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.stake),
-      getAccountMeta(accounts.vote),
-      getAccountMeta(accounts.clockSysvar),
-      getAccountMeta(accounts.stakeHistory),
-      getAccountMeta(accounts.unused),
-      getAccountMeta(accounts.stakeAuthority),
-    ],
     data: getDelegateStakeInstructionDataEncoder().encode({}),
     programAddress,
-  } as DelegateStakeInstruction<
-    TProgramAddress,
-    TAccountStake,
-    TAccountVote,
-    TAccountClockSysvar,
-    TAccountStakeHistory,
-    TAccountUnused,
-    TAccountStakeAuthority
-  >);
+  } as DelegateStakeInstruction<TProgramAddress>);
 }
 
 export type ParsedDelegateStakeInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
-> = {
-  programAddress: Address<TProgram>;
-  accounts: {
-    /** Initialized stake account to be delegated */
-    stake: TAccountMetas[0];
-    /** Vote account to which this stake will be delegated */
-    vote: TAccountMetas[1];
-    /** Clock sysvar */
-    clockSysvar: TAccountMetas[2];
-    /** Stake history sysvar that carries stake warmup/cooldown history */
-    stakeHistory: TAccountMetas[3];
-    /** Unused account, formerly the stake config */
-    unused: TAccountMetas[4];
-    /** Stake authority */
-    stakeAuthority: TAccountMetas[5];
-  };
-  data: DelegateStakeInstructionData;
-};
+> = { programAddress: Address<TProgram>; data: DelegateStakeInstructionData };
 
-export function parseDelegateStakeInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
->(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
-): ParsedDelegateStakeInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 6) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
+export function parseDelegateStakeInstruction<TProgram extends string>(
+  instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>
+): ParsedDelegateStakeInstruction<TProgram> {
   return {
     programAddress: instruction.programAddress,
-    accounts: {
-      stake: getNextAccount(),
-      vote: getNextAccount(),
-      clockSysvar: getNextAccount(),
-      stakeHistory: getNextAccount(),
-      unused: getNextAccount(),
-      stakeAuthority: getNextAccount(),
-    },
     data: getDelegateStakeInstructionDataDecoder().decode(instruction.data),
   };
 }

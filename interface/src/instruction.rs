@@ -53,9 +53,9 @@ pub enum StakeInstruction {
     /// withdrawal restrictions.
     #[cfg_attr(
         feature = "codama",
-        codama(account(name = "stake", writable, docs = "Uninitialized stake account"))
+        codama(account(name = "stake", writable, docs = "Uninitialized stake account")),
+        codama(account(name = "rent_sysvar", docs = "Rent sysvar", default_value = sysvar("rent")))
     )]
-    #[cfg_attr(feature = "codama", codama(account(name = "rent_sysvar", docs = "Rent sysvar", default_value = sysvar("rent"))))]
     // backwards compatibility with old IDL demands auto `arg0` and `arg1` names
     Initialize(Authorized, Lockup),
 
@@ -69,15 +69,9 @@ pub enum StakeInstruction {
     ///      lockup expiration
     #[cfg_attr(
         feature = "codama",
-        codama(account(name = "stake", writable, docs = "Stake account to be updated"))
-    )]
-    #[cfg_attr(feature = "codama", codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))))]
-    #[cfg_attr(
-        feature = "codama",
-        codama(account(name = "authority", signer, docs = "The stake or withdraw authority"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        codama(account(name = "stake", writable, docs = "Stake account to be updated")),
+        codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))),
+        codama(account(name = "authority", signer, docs = "The stake or withdraw authority")),
         codama(account(
             name = "lockup_authority",
             optional,
@@ -106,27 +100,18 @@ pub enum StakeInstruction {
             name = "stake",
             writable,
             docs = "Initialized stake account to be delegated"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
         codama(account(
             name = "vote",
             docs = "Vote account to which this stake will be delegated"
-        ))
-    )]
-    #[cfg_attr(feature = "codama", codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))))]
-    #[cfg_attr(feature = "codama", codama(account(
-        name = "stake_history",
-        docs = "Stake history sysvar that carries stake warmup/cooldown history",
-        default_value = sysvar("stake_history")
-    )))]
-    #[cfg_attr(
-        feature = "codama",
-        codama(account(name = "unused", docs = "Unused account, formerly the stake config"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
+        codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))),
+        codama(account(
+            name = "stake_history",
+            docs = "Stake history sysvar that carries stake warmup/cooldown history",
+            default_value = sysvar("stake_history")
+        )),
+        codama(account(name = "unused", docs = "Unused account, formerly the stake config")),
         codama(account(name = "stake_authority", signer, docs = "Stake authority"))
     )]
     DelegateStake,
@@ -143,18 +128,12 @@ pub enum StakeInstruction {
             name = "stake",
             writable,
             docs = "Stake account to be split; must be in the Initialized or Stake state"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
         codama(account(
             name = "split_stake",
             writable,
             docs = "Uninitialized stake account that will take the split-off amount"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
         codama(account(name = "stake_authority", signer, docs = "Stake authority"))
     )]
     // backwards compatibility with old IDL demands old `args` name
@@ -178,24 +157,15 @@ pub enum StakeInstruction {
             name = "stake",
             writable,
             docs = "Stake account from which to withdraw"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
-        codama(account(name = "recipient", writable, docs = "Recipient account"))
-    )]
-    #[cfg_attr(feature = "codama", codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))))]
-    #[cfg_attr(feature = "codama", codama(account(
-        name = "stake_history",
-        docs = "Stake history sysvar that carries stake warmup/cooldown history",
-        default_value = sysvar("stake_history")
-    )))]
-    #[cfg_attr(
-        feature = "codama",
-        codama(account(name = "withdraw_authority", signer, docs = "Withdraw authority"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
+        codama(account(name = "recipient", writable, docs = "Recipient account")),
+        codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))),
+        codama(account(
+            name = "stake_history",
+            docs = "Stake history sysvar that carries stake warmup/cooldown history",
+            default_value = sysvar("stake_history")
+        )),
+        codama(account(name = "withdraw_authority", signer, docs = "Withdraw authority")),
         codama(account(
             name = "lockup_authority",
             optional,
@@ -218,11 +188,8 @@ pub enum StakeInstruction {
             name = "stake",
             writable,
             docs = "Delegated stake account to be deactivated"
-        ))
-    )]
-    #[cfg_attr(feature = "codama", codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))))]
-    #[cfg_attr(
-        feature = "codama",
+        )),
+        codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))),
         codama(account(name = "stake_authority", signer, docs = "Stake authority"))
     )]
     Deactivate,
@@ -237,10 +204,7 @@ pub enum StakeInstruction {
     ///   1. `[SIGNER]` Lockup authority or withdraw authority
     #[cfg_attr(
         feature = "codama",
-        codama(account(name = "stake", writable, docs = "Initialized stake account"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        codama(account(name = "stake", writable, docs = "Initialized stake account")),
         codama(account(
             name = "authority",
             signer,
@@ -279,24 +243,18 @@ pub enum StakeInstruction {
             name = "destination_stake",
             writable,
             docs = "Destination stake account for the merge"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
         codama(account(
             name = "source_stake",
             writable,
             docs = "Source stake account for to merge.  This account will be drained"
-        ))
-    )]
-    #[cfg_attr(feature = "codama", codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))))]
-    #[cfg_attr(feature = "codama", codama(account(
-        name = "stake_history",
-        docs = "Stake history sysvar that carries stake warmup/cooldown history",
-        default_value = sysvar("stake_history")
-    )))]
-    #[cfg_attr(
-        feature = "codama",
+        )),
+        codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))),
+        codama(account(
+            name = "stake_history",
+            docs = "Stake history sysvar that carries stake warmup/cooldown history",
+            default_value = sysvar("stake_history")
+        )),
         codama(account(name = "stake_authority", signer, docs = "Stake authority"))
     )]
     Merge,
@@ -311,19 +269,13 @@ pub enum StakeInstruction {
     ///      before lockup expiration
     #[cfg_attr(
         feature = "codama",
-        codama(account(name = "stake", writable, docs = "Stake account to be updated"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        codama(account(name = "stake", writable, docs = "Stake account to be updated")),
         codama(account(
             name = "base",
             signer,
             docs = "Base key of stake or withdraw authority"
-        ))
-    )]
-    #[cfg_attr(feature = "codama", codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))))]
-    #[cfg_attr(
-        feature = "codama",
+        )),
+        codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))),
         codama(account(
             name = "lockup_authority",
             optional,
@@ -345,18 +297,9 @@ pub enum StakeInstruction {
     ///   3. `[SIGNER]` The withdraw authority
     #[cfg_attr(
         feature = "codama",
-        codama(account(name = "stake", writable, docs = "Uninitialized stake account"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
-        codama(account(name = "rent_sysvar", docs = "Rent sysvar", default_value = sysvar("rent")))
-    )]
-    #[cfg_attr(
-        feature = "codama",
-        codama(account(name = "stake_authority", docs = "The stake authority"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        codama(account(name = "stake", writable, docs = "Uninitialized stake account")),
+        codama(account(name = "rent_sysvar", docs = "Rent sysvar", default_value = sysvar("rent"))),
+        codama(account(name = "stake_authority", docs = "The stake authority")),
         codama(account(name = "withdraw_authority", signer, docs = "The withdraw authority"))
     )]
     InitializeChecked,
@@ -375,23 +318,14 @@ pub enum StakeInstruction {
     ///      before lockup expiration
     #[cfg_attr(
         feature = "codama",
-        codama(account(name = "stake", writable, docs = "Stake account to be updated"))
-    )]
-    #[cfg_attr(feature = "codama", codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))))]
-    #[cfg_attr(
-        feature = "codama",
-        codama(account(name = "authority", signer, docs = "The stake or withdraw authority"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        codama(account(name = "stake", writable, docs = "Stake account to be updated")),
+        codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))),
+        codama(account(name = "authority", signer, docs = "The stake or withdraw authority")),
         codama(account(
             name = "new_authority",
             signer,
             docs = "The new stake or withdraw authority"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
         codama(account(
             name = "lockup_authority",
             optional,
@@ -417,27 +351,18 @@ pub enum StakeInstruction {
     ///      before lockup expiration
     #[cfg_attr(
         feature = "codama",
-        codama(account(name = "stake", writable, docs = "Stake account to be updated"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        codama(account(name = "stake", writable, docs = "Stake account to be updated")),
         codama(account(
             name = "base",
             signer,
             docs = "Base key of stake or withdraw authority"
-        ))
-    )]
-    #[cfg_attr(feature = "codama", codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))))]
-    #[cfg_attr(
-        feature = "codama",
+        )),
+        codama(account(name = "clock_sysvar", docs = "Clock sysvar", default_value = sysvar("clock"))),
         codama(account(
             name = "new_authority",
             signer,
             docs = "The new stake or withdraw authority"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
         codama(account(
             name = "lockup_authority",
             optional,
@@ -461,18 +386,12 @@ pub enum StakeInstruction {
     ///   2. Optional: `[SIGNER]` New lockup authority
     #[cfg_attr(
         feature = "codama",
-        codama(account(name = "stake", writable, docs = "Initialized stake account"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        codama(account(name = "stake", writable, docs = "Initialized stake account")),
         codama(account(
             name = "authority",
             signer,
             docs = "Lockup authority or withdraw authority"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
         codama(account(
             name = "new_authority",
             optional,
@@ -507,17 +426,11 @@ pub enum StakeInstruction {
     ///      `MINIMUM_DELINQUENT_EPOCHS_FOR_DEACTIVATION` epochs
     #[cfg_attr(
         feature = "codama",
-        codama(account(name = "stake", writable, docs = "Delegated stake account"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        codama(account(name = "stake", writable, docs = "Delegated stake account")),
         codama(account(
             name = "delinquent_vote",
             docs = "Delinquent vote account for the delegated stake account"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
         codama(account(
             name = "reference_vote",
             docs = "Reference vote account that has voted at least once in the last `MINIMUM_DELINQUENT_EPOCHS_FOR_DEACTIVATION` epochs"
@@ -570,18 +483,12 @@ pub enum StakeInstruction {
     /// The `u64` is the portion of the stake to move, which may be the entire delegation
     #[cfg_attr(
         feature = "codama",
-        codama(account(name = "sourceStake", writable, docs = "Active source stake account"))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        codama(account(name = "sourceStake", writable, docs = "Active source stake account")),
         codama(account(
             name = "destinationStake",
             writable,
             docs = "Active or inactive destination stake account"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
         codama(account(name = "stake_authority", signer, docs = "Stake authority"))
     )]
     // sadly named `args` to avoid breaking users of old IDL
@@ -606,18 +513,12 @@ pub enum StakeInstruction {
             name = "source_stake",
             writable,
             docs = "Active or inactive source stake account"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
         codama(account(
             name = "destination_stake",
             writable,
             docs = "Mergeable destination stake account"
-        ))
-    )]
-    #[cfg_attr(
-        feature = "codama",
+        )),
         codama(account(name = "stake_authority", signer, docs = "Stake authority"))
     )]
     // sadly named `args` to avoid breaking users of old IDL

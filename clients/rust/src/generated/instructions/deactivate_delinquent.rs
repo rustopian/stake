@@ -11,14 +11,7 @@ pub const DEACTIVATE_DELINQUENT_DISCRIMINATOR: u32 = 14;
 
 /// Accounts.
 #[derive(Debug)]
-pub struct DeactivateDelinquent {
-    /// Delegated stake account
-    pub stake: solana_pubkey::Pubkey,
-    /// Delinquent vote account for the delegated stake account
-    pub delinquent_vote: solana_pubkey::Pubkey,
-    /// Reference vote account that has voted at least once in the last `MINIMUM_DELINQUENT_EPOCHS_FOR_DEACTIVATION` epochs
-    pub reference_vote: solana_pubkey::Pubkey,
-}
+pub struct DeactivateDelinquent {}
 
 impl DeactivateDelinquent {
     pub fn instruction(&self) -> solana_instruction::Instruction {
@@ -30,16 +23,7 @@ impl DeactivateDelinquent {
         &self,
         remaining_accounts: &[solana_instruction::AccountMeta],
     ) -> solana_instruction::Instruction {
-        let mut accounts = Vec::with_capacity(3 + remaining_accounts.len());
-        accounts.push(solana_instruction::AccountMeta::new(self.stake, false));
-        accounts.push(solana_instruction::AccountMeta::new_readonly(
-            self.delinquent_vote,
-            false,
-        ));
-        accounts.push(solana_instruction::AccountMeta::new_readonly(
-            self.reference_vote,
-            false,
-        ));
+        let mut accounts = Vec::with_capacity(remaining_accounts.len());
         accounts.extend_from_slice(remaining_accounts);
         let data = DeactivateDelinquentInstructionData::new()
             .try_to_vec()
@@ -79,38 +63,14 @@ impl Default for DeactivateDelinquentInstructionData {
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` stake
-///   1. `[]` delinquent_vote
-///   2. `[]` reference_vote
 #[derive(Clone, Debug, Default)]
 pub struct DeactivateDelinquentBuilder {
-    stake: Option<solana_pubkey::Pubkey>,
-    delinquent_vote: Option<solana_pubkey::Pubkey>,
-    reference_vote: Option<solana_pubkey::Pubkey>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
 impl DeactivateDelinquentBuilder {
     pub fn new() -> Self {
         Self::default()
-    }
-    /// Delegated stake account
-    #[inline(always)]
-    pub fn stake(&mut self, stake: solana_pubkey::Pubkey) -> &mut Self {
-        self.stake = Some(stake);
-        self
-    }
-    /// Delinquent vote account for the delegated stake account
-    #[inline(always)]
-    pub fn delinquent_vote(&mut self, delinquent_vote: solana_pubkey::Pubkey) -> &mut Self {
-        self.delinquent_vote = Some(delinquent_vote);
-        self
-    }
-    /// Reference vote account that has voted at least once in the last `MINIMUM_DELINQUENT_EPOCHS_FOR_DEACTIVATION` epochs
-    #[inline(always)]
-    pub fn reference_vote(&mut self, reference_vote: solana_pubkey::Pubkey) -> &mut Self {
-        self.reference_vote = Some(reference_vote);
-        self
     }
     /// Add an additional account to the instruction.
     #[inline(always)]
@@ -129,49 +89,21 @@ impl DeactivateDelinquentBuilder {
     }
     #[allow(clippy::clone_on_copy)]
     pub fn instruction(&self) -> solana_instruction::Instruction {
-        let accounts = DeactivateDelinquent {
-            stake: self.stake.expect("stake is not set"),
-            delinquent_vote: self.delinquent_vote.expect("delinquent_vote is not set"),
-            reference_vote: self.reference_vote.expect("reference_vote is not set"),
-        };
+        let accounts = DeactivateDelinquent {};
 
         accounts.instruction_with_remaining_accounts(&self.__remaining_accounts)
     }
-}
-
-/// `deactivate_delinquent` CPI accounts.
-pub struct DeactivateDelinquentCpiAccounts<'a, 'b> {
-    /// Delegated stake account
-    pub stake: &'b solana_account_info::AccountInfo<'a>,
-    /// Delinquent vote account for the delegated stake account
-    pub delinquent_vote: &'b solana_account_info::AccountInfo<'a>,
-    /// Reference vote account that has voted at least once in the last `MINIMUM_DELINQUENT_EPOCHS_FOR_DEACTIVATION` epochs
-    pub reference_vote: &'b solana_account_info::AccountInfo<'a>,
 }
 
 /// `deactivate_delinquent` CPI instruction.
 pub struct DeactivateDelinquentCpi<'a, 'b> {
     /// The program to invoke.
     pub __program: &'b solana_account_info::AccountInfo<'a>,
-    /// Delegated stake account
-    pub stake: &'b solana_account_info::AccountInfo<'a>,
-    /// Delinquent vote account for the delegated stake account
-    pub delinquent_vote: &'b solana_account_info::AccountInfo<'a>,
-    /// Reference vote account that has voted at least once in the last `MINIMUM_DELINQUENT_EPOCHS_FOR_DEACTIVATION` epochs
-    pub reference_vote: &'b solana_account_info::AccountInfo<'a>,
 }
 
 impl<'a, 'b> DeactivateDelinquentCpi<'a, 'b> {
-    pub fn new(
-        program: &'b solana_account_info::AccountInfo<'a>,
-        accounts: DeactivateDelinquentCpiAccounts<'a, 'b>,
-    ) -> Self {
-        Self {
-            __program: program,
-            stake: accounts.stake,
-            delinquent_vote: accounts.delinquent_vote,
-            reference_vote: accounts.reference_vote,
-        }
+    pub fn new(program: &'b solana_account_info::AccountInfo<'a>) -> Self {
+        Self { __program: program }
     }
     #[inline(always)]
     pub fn invoke(&self) -> solana_program_error::ProgramResult {
@@ -196,16 +128,7 @@ impl<'a, 'b> DeactivateDelinquentCpi<'a, 'b> {
         signers_seeds: &[&[&[u8]]],
         remaining_accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)],
     ) -> solana_program_error::ProgramResult {
-        let mut accounts = Vec::with_capacity(3 + remaining_accounts.len());
-        accounts.push(solana_instruction::AccountMeta::new(*self.stake.key, false));
-        accounts.push(solana_instruction::AccountMeta::new_readonly(
-            *self.delinquent_vote.key,
-            false,
-        ));
-        accounts.push(solana_instruction::AccountMeta::new_readonly(
-            *self.reference_vote.key,
-            false,
-        ));
+        let mut accounts = Vec::with_capacity(remaining_accounts.len());
         remaining_accounts.iter().for_each(|remaining_account| {
             accounts.push(solana_instruction::AccountMeta {
                 pubkey: *remaining_account.0.key,
@@ -222,11 +145,8 @@ impl<'a, 'b> DeactivateDelinquentCpi<'a, 'b> {
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(4 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(1 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
-        account_infos.push(self.stake.clone());
-        account_infos.push(self.delinquent_vote.clone());
-        account_infos.push(self.reference_vote.clone());
         remaining_accounts
             .iter()
             .for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
@@ -243,9 +163,6 @@ impl<'a, 'b> DeactivateDelinquentCpi<'a, 'b> {
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` stake
-///   1. `[]` delinquent_vote
-///   2. `[]` reference_vote
 #[derive(Clone, Debug)]
 pub struct DeactivateDelinquentCpiBuilder<'a, 'b> {
     instruction: Box<DeactivateDelinquentCpiBuilderInstruction<'a, 'b>>,
@@ -255,36 +172,9 @@ impl<'a, 'b> DeactivateDelinquentCpiBuilder<'a, 'b> {
     pub fn new(program: &'b solana_account_info::AccountInfo<'a>) -> Self {
         let instruction = Box::new(DeactivateDelinquentCpiBuilderInstruction {
             __program: program,
-            stake: None,
-            delinquent_vote: None,
-            reference_vote: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
-    }
-    /// Delegated stake account
-    #[inline(always)]
-    pub fn stake(&mut self, stake: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
-        self.instruction.stake = Some(stake);
-        self
-    }
-    /// Delinquent vote account for the delegated stake account
-    #[inline(always)]
-    pub fn delinquent_vote(
-        &mut self,
-        delinquent_vote: &'b solana_account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.delinquent_vote = Some(delinquent_vote);
-        self
-    }
-    /// Reference vote account that has voted at least once in the last `MINIMUM_DELINQUENT_EPOCHS_FOR_DEACTIVATION` epochs
-    #[inline(always)]
-    pub fn reference_vote(
-        &mut self,
-        reference_vote: &'b solana_account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.reference_vote = Some(reference_vote);
-        self
     }
     /// Add an additional account to the instruction.
     #[inline(always)]
@@ -322,18 +212,6 @@ impl<'a, 'b> DeactivateDelinquentCpiBuilder<'a, 'b> {
     pub fn invoke_signed(&self, signers_seeds: &[&[&[u8]]]) -> solana_program_error::ProgramResult {
         let instruction = DeactivateDelinquentCpi {
             __program: self.instruction.__program,
-
-            stake: self.instruction.stake.expect("stake is not set"),
-
-            delinquent_vote: self
-                .instruction
-                .delinquent_vote
-                .expect("delinquent_vote is not set"),
-
-            reference_vote: self
-                .instruction
-                .reference_vote
-                .expect("reference_vote is not set"),
         };
         instruction.invoke_signed_with_remaining_accounts(
             signers_seeds,
@@ -345,9 +223,6 @@ impl<'a, 'b> DeactivateDelinquentCpiBuilder<'a, 'b> {
 #[derive(Clone, Debug)]
 struct DeactivateDelinquentCpiBuilderInstruction<'a, 'b> {
     __program: &'b solana_account_info::AccountInfo<'a>,
-    stake: Option<&'b solana_account_info::AccountInfo<'a>>,
-    delinquent_vote: Option<&'b solana_account_info::AccountInfo<'a>>,
-    reference_vote: Option<&'b solana_account_info::AccountInfo<'a>>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(&'b solana_account_info::AccountInfo<'a>, bool, bool)>,
 }

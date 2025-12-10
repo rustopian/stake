@@ -608,30 +608,7 @@
     ],
     "instructions": [
       {
-        "accounts": [
-          {
-            "docs": [
-              "Uninitialized stake account"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarRent111111111111111111111111111111111"
-            },
-            "docs": [
-              "Rent sysvar"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "rentSysvar"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -675,49 +652,7 @@
         "name": "initialize"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Stake account to be updated"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarC1ock11111111111111111111111111111111"
-            },
-            "docs": [
-              "Clock sysvar"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "clockSysvar"
-          },
-          {
-            "docs": [
-              "The stake or withdraw authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "authority"
-          },
-          {
-            "docs": [
-              "Lockup authority, if updating `StakeAuthorize::Withdrawer` before lockup expiration"
-            ],
-            "isOptional": true,
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "lockupAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -760,70 +695,7 @@
         "name": "authorize"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Initialized stake account to be delegated"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "docs": [
-              "Vote account to which this stake will be delegated"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "vote"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarC1ock11111111111111111111111111111111"
-            },
-            "docs": [
-              "Clock sysvar"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "clockSysvar"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarStakeHistory1111111111111111111111111"
-            },
-            "docs": [
-              "Stake history sysvar that carries stake warmup/cooldown history"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "stakeHistory"
-          },
-          {
-            "docs": [
-              "Unused account, formerly the stake config"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "unused"
-          },
-          {
-            "docs": [
-              "Stake authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "stakeAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -851,35 +723,7 @@
         "name": "delegateStake"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Stake account to be split; must be in the Initialized or Stake state"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "docs": [
-              "Uninitialized stake account that will take the split-off amount"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "splitStake"
-          },
-          {
-            "docs": [
-              "Stake authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "stakeAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -916,71 +760,7 @@
         "name": "split"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Stake account from which to withdraw"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "docs": [
-              "Recipient account"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "recipient"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarC1ock11111111111111111111111111111111"
-            },
-            "docs": [
-              "Clock sysvar"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "clockSysvar"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarStakeHistory1111111111111111111111111"
-            },
-            "docs": [
-              "Stake history sysvar that carries stake warmup/cooldown history"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "stakeHistory"
-          },
-          {
-            "docs": [
-              "Withdraw authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "withdrawAuthority"
-          },
-          {
-            "docs": [
-              "Lockup authority, if before lockup expiration"
-            ],
-            "isOptional": true,
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "lockupAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -1017,39 +797,7 @@
         "name": "withdraw"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Delegated stake account to be deactivated"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarC1ock11111111111111111111111111111111"
-            },
-            "docs": [
-              "Clock sysvar"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "clockSysvar"
-          },
-          {
-            "docs": [
-              "Stake authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "stakeAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -1077,26 +825,7 @@
         "name": "deactivate"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Initialized stake account"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "docs": [
-              "Lockup authority or withdraw authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "authority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -1132,61 +861,7 @@
         "name": "setLockup"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Destination stake account for the merge"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "destinationStake"
-          },
-          {
-            "docs": [
-              "Source stake account for to merge.  This account will be drained"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "sourceStake"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarC1ock11111111111111111111111111111111"
-            },
-            "docs": [
-              "Clock sysvar"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "clockSysvar"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarStakeHistory1111111111111111111111111"
-            },
-            "docs": [
-              "Stake history sysvar that carries stake warmup/cooldown history"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "stakeHistory"
-          },
-          {
-            "docs": [
-              "Stake authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "stakeAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -1214,49 +889,7 @@
         "name": "merge"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Stake account to be updated"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "docs": [
-              "Base key of stake or withdraw authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "base"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarC1ock11111111111111111111111111111111"
-            },
-            "docs": [
-              "Clock sysvar"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "clockSysvar"
-          },
-          {
-            "docs": [
-              "Lockup authority, if updating `StakeAuthorize::Withdrawer` before lockup expiration"
-            ],
-            "isOptional": true,
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "lockupAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -1292,48 +925,7 @@
         "name": "authorizeWithSeed"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Uninitialized stake account"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarRent111111111111111111111111111111111"
-            },
-            "docs": [
-              "Rent sysvar"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "rentSysvar"
-          },
-          {
-            "docs": [
-              "The stake authority"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "stakeAuthority"
-          },
-          {
-            "docs": [
-              "The withdraw authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "withdrawAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -1361,58 +953,7 @@
         "name": "initializeChecked"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Stake account to be updated"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarC1ock11111111111111111111111111111111"
-            },
-            "docs": [
-              "Clock sysvar"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "clockSysvar"
-          },
-          {
-            "docs": [
-              "The stake or withdraw authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "authority"
-          },
-          {
-            "docs": [
-              "The new stake or withdraw authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "newAuthority"
-          },
-          {
-            "docs": [
-              "Lockup authority, if updating `StakeAuthorize::Withdrawer` before lockup expiration"
-            ],
-            "isOptional": true,
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "lockupAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -1448,58 +989,7 @@
         "name": "authorizeChecked"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Stake account to be updated"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "docs": [
-              "Base key of stake or withdraw authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "base"
-          },
-          {
-            "defaultValue": {
-              "kind": "publicKeyValueNode",
-              "publicKey": "SysvarC1ock11111111111111111111111111111111"
-            },
-            "docs": [
-              "Clock sysvar"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "clockSysvar"
-          },
-          {
-            "docs": [
-              "The new stake or withdraw authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "newAuthority"
-          },
-          {
-            "docs": [
-              "Lockup authority, if updating `StakeAuthorize::Withdrawer` before lockup expiration"
-            ],
-            "isOptional": true,
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "lockupAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -1535,36 +1025,7 @@
         "name": "authorizeCheckedWithSeed"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Initialized stake account"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "docs": [
-              "Lockup authority or withdraw authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "authority"
-          },
-          {
-            "docs": [
-              "New lockup authority"
-            ],
-            "isOptional": true,
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "newAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -1628,35 +1089,7 @@
         "name": "getMinimumDelegation"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Delegated stake account"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "stake"
-          },
-          {
-            "docs": [
-              "Delinquent vote account for the delegated stake account"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "delinquentVote"
-          },
-          {
-            "docs": [
-              "Reference vote account that has voted at least once in the last `MINIMUM_DELINQUENT_EPOCHS_FOR_DEACTIVATION` epochs"
-            ],
-            "isSigner": false,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "referenceVote"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -1712,35 +1145,7 @@
         "name": "redelegate"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Active source stake account"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "sourceStake"
-          },
-          {
-            "docs": [
-              "Active or inactive destination stake account"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "destinationStake"
-          },
-          {
-            "docs": [
-              "Stake authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "stakeAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {
@@ -1777,35 +1182,7 @@
         "name": "moveStake"
       },
       {
-        "accounts": [
-          {
-            "docs": [
-              "Active or inactive source stake account"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "sourceStake"
-          },
-          {
-            "docs": [
-              "Mergeable destination stake account"
-            ],
-            "isSigner": false,
-            "isWritable": true,
-            "kind": "instructionAccountNode",
-            "name": "destinationStake"
-          },
-          {
-            "docs": [
-              "Stake authority"
-            ],
-            "isSigner": true,
-            "isWritable": false,
-            "kind": "instructionAccountNode",
-            "name": "stakeAuthority"
-          }
-        ],
+        "accounts": [],
         "arguments": [
           {
             "defaultValue": {

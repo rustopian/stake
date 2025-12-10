@@ -14,7 +14,6 @@ import {
   getU32Encoder,
   transformEncoder,
   type AccountMeta,
-  type AccountSignerMeta,
   type Address,
   type FixedSizeCodec,
   type FixedSizeDecoder,
@@ -22,14 +21,9 @@ import {
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
-  type ReadonlyAccount,
-  type ReadonlySignerAccount,
   type ReadonlyUint8Array,
-  type TransactionSigner,
-  type WritableAccount,
 } from '@solana/kit';
 import { STAKE_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const INITIALIZE_CHECKED_DISCRIMINATOR = 9;
 
@@ -39,33 +33,10 @@ export function getInitializeCheckedDiscriminatorBytes() {
 
 export type InitializeCheckedInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountStake extends string | AccountMeta<string> = string,
-  TAccountRentSysvar extends
-    | string
-    | AccountMeta<string> = 'SysvarRent111111111111111111111111111111111',
-  TAccountStakeAuthority extends string | AccountMeta<string> = string,
-  TAccountWithdrawAuthority extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountStake extends string
-        ? WritableAccount<TAccountStake>
-        : TAccountStake,
-      TAccountRentSysvar extends string
-        ? ReadonlyAccount<TAccountRentSysvar>
-        : TAccountRentSysvar,
-      TAccountStakeAuthority extends string
-        ? ReadonlyAccount<TAccountStakeAuthority>
-        : TAccountStakeAuthority,
-      TAccountWithdrawAuthority extends string
-        ? ReadonlySignerAccount<TAccountWithdrawAuthority> &
-            AccountSignerMeta<TAccountWithdrawAuthority>
-        : TAccountWithdrawAuthority,
-      ...TRemainingAccounts,
-    ]
-  >;
+  InstructionWithAccounts<TRemainingAccounts>;
 
 export type InitializeCheckedInstructionData = { discriminator: number };
 
@@ -92,130 +63,34 @@ export function getInitializeCheckedInstructionDataCodec(): FixedSizeCodec<
   );
 }
 
-export type InitializeCheckedInput<
-  TAccountStake extends string = string,
-  TAccountRentSysvar extends string = string,
-  TAccountStakeAuthority extends string = string,
-  TAccountWithdrawAuthority extends string = string,
-> = {
-  /** Uninitialized stake account */
-  stake: Address<TAccountStake>;
-  /** Rent sysvar */
-  rentSysvar?: Address<TAccountRentSysvar>;
-  /** The stake authority */
-  stakeAuthority: Address<TAccountStakeAuthority>;
-  /** The withdraw authority */
-  withdrawAuthority: TransactionSigner<TAccountWithdrawAuthority>;
-};
+export type InitializeCheckedInput = {};
 
 export function getInitializeCheckedInstruction<
-  TAccountStake extends string,
-  TAccountRentSysvar extends string,
-  TAccountStakeAuthority extends string,
-  TAccountWithdrawAuthority extends string,
   TProgramAddress extends Address = typeof STAKE_PROGRAM_ADDRESS,
->(
-  input: InitializeCheckedInput<
-    TAccountStake,
-    TAccountRentSysvar,
-    TAccountStakeAuthority,
-    TAccountWithdrawAuthority
-  >,
-  config?: { programAddress?: TProgramAddress }
-): InitializeCheckedInstruction<
-  TProgramAddress,
-  TAccountStake,
-  TAccountRentSysvar,
-  TAccountStakeAuthority,
-  TAccountWithdrawAuthority
-> {
+>(config?: {
+  programAddress?: TProgramAddress;
+}): InitializeCheckedInstruction<TProgramAddress> {
   // Program address.
   const programAddress = config?.programAddress ?? STAKE_PROGRAM_ADDRESS;
 
-  // Original accounts.
-  const originalAccounts = {
-    stake: { value: input.stake ?? null, isWritable: true },
-    rentSysvar: { value: input.rentSysvar ?? null, isWritable: false },
-    stakeAuthority: { value: input.stakeAuthority ?? null, isWritable: false },
-    withdrawAuthority: {
-      value: input.withdrawAuthority ?? null,
-      isWritable: false,
-    },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
-
-  // Resolve default values.
-  if (!accounts.rentSysvar.value) {
-    accounts.rentSysvar.value =
-      'SysvarRent111111111111111111111111111111111' as Address<'SysvarRent111111111111111111111111111111111'>;
-  }
-
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'omitted');
   return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.stake),
-      getAccountMeta(accounts.rentSysvar),
-      getAccountMeta(accounts.stakeAuthority),
-      getAccountMeta(accounts.withdrawAuthority),
-    ],
     data: getInitializeCheckedInstructionDataEncoder().encode({}),
     programAddress,
-  } as InitializeCheckedInstruction<
-    TProgramAddress,
-    TAccountStake,
-    TAccountRentSysvar,
-    TAccountStakeAuthority,
-    TAccountWithdrawAuthority
-  >);
+  } as InitializeCheckedInstruction<TProgramAddress>);
 }
 
 export type ParsedInitializeCheckedInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
   programAddress: Address<TProgram>;
-  accounts: {
-    /** Uninitialized stake account */
-    stake: TAccountMetas[0];
-    /** Rent sysvar */
-    rentSysvar: TAccountMetas[1];
-    /** The stake authority */
-    stakeAuthority: TAccountMetas[2];
-    /** The withdraw authority */
-    withdrawAuthority: TAccountMetas[3];
-  };
   data: InitializeCheckedInstructionData;
 };
 
-export function parseInitializeCheckedInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
->(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
-): ParsedInitializeCheckedInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 4) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
+export function parseInitializeCheckedInstruction<TProgram extends string>(
+  instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>
+): ParsedInitializeCheckedInstruction<TProgram> {
   return {
     programAddress: instruction.programAddress,
-    accounts: {
-      stake: getNextAccount(),
-      rentSysvar: getNextAccount(),
-      stakeAuthority: getNextAccount(),
-      withdrawAuthority: getNextAccount(),
-    },
     data: getInitializeCheckedInstructionDataDecoder().decode(instruction.data),
   };
 }

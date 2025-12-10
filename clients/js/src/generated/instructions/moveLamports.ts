@@ -16,7 +16,6 @@ import {
   getU64Encoder,
   transformEncoder,
   type AccountMeta,
-  type AccountSignerMeta,
   type Address,
   type FixedSizeCodec,
   type FixedSizeDecoder,
@@ -24,13 +23,9 @@ import {
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
-  type ReadonlySignerAccount,
   type ReadonlyUint8Array,
-  type TransactionSigner,
-  type WritableAccount,
 } from '@solana/kit';
 import { STAKE_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const MOVE_LAMPORTS_DISCRIMINATOR = 17;
 
@@ -40,27 +35,10 @@ export function getMoveLamportsDiscriminatorBytes() {
 
 export type MoveLamportsInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountSourceStake extends string | AccountMeta<string> = string,
-  TAccountDestinationStake extends string | AccountMeta<string> = string,
-  TAccountStakeAuthority extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountSourceStake extends string
-        ? WritableAccount<TAccountSourceStake>
-        : TAccountSourceStake,
-      TAccountDestinationStake extends string
-        ? WritableAccount<TAccountDestinationStake>
-        : TAccountDestinationStake,
-      TAccountStakeAuthority extends string
-        ? ReadonlySignerAccount<TAccountStakeAuthority> &
-            AccountSignerMeta<TAccountStakeAuthority>
-        : TAccountStakeAuthority,
-      ...TRemainingAccounts,
-    ]
-  >;
+  InstructionWithAccounts<TRemainingAccounts>;
 
 export type MoveLamportsInstructionData = {
   discriminator: number;
@@ -96,118 +74,39 @@ export function getMoveLamportsInstructionDataCodec(): FixedSizeCodec<
   );
 }
 
-export type MoveLamportsInput<
-  TAccountSourceStake extends string = string,
-  TAccountDestinationStake extends string = string,
-  TAccountStakeAuthority extends string = string,
-> = {
-  /** Active or inactive source stake account */
-  sourceStake: Address<TAccountSourceStake>;
-  /** Mergeable destination stake account */
-  destinationStake: Address<TAccountDestinationStake>;
-  /** Stake authority */
-  stakeAuthority: TransactionSigner<TAccountStakeAuthority>;
+export type MoveLamportsInput = {
   args: MoveLamportsInstructionDataArgs['args'];
 };
 
 export function getMoveLamportsInstruction<
-  TAccountSourceStake extends string,
-  TAccountDestinationStake extends string,
-  TAccountStakeAuthority extends string,
   TProgramAddress extends Address = typeof STAKE_PROGRAM_ADDRESS,
 >(
-  input: MoveLamportsInput<
-    TAccountSourceStake,
-    TAccountDestinationStake,
-    TAccountStakeAuthority
-  >,
+  input: MoveLamportsInput,
   config?: { programAddress?: TProgramAddress }
-): MoveLamportsInstruction<
-  TProgramAddress,
-  TAccountSourceStake,
-  TAccountDestinationStake,
-  TAccountStakeAuthority
-> {
+): MoveLamportsInstruction<TProgramAddress> {
   // Program address.
   const programAddress = config?.programAddress ?? STAKE_PROGRAM_ADDRESS;
-
-  // Original accounts.
-  const originalAccounts = {
-    sourceStake: { value: input.sourceStake ?? null, isWritable: true },
-    destinationStake: {
-      value: input.destinationStake ?? null,
-      isWritable: true,
-    },
-    stakeAuthority: { value: input.stakeAuthority ?? null, isWritable: false },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
 
   // Original args.
   const args = { ...input };
 
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'omitted');
   return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.sourceStake),
-      getAccountMeta(accounts.destinationStake),
-      getAccountMeta(accounts.stakeAuthority),
-    ],
     data: getMoveLamportsInstructionDataEncoder().encode(
       args as MoveLamportsInstructionDataArgs
     ),
     programAddress,
-  } as MoveLamportsInstruction<
-    TProgramAddress,
-    TAccountSourceStake,
-    TAccountDestinationStake,
-    TAccountStakeAuthority
-  >);
+  } as MoveLamportsInstruction<TProgramAddress>);
 }
 
 export type ParsedMoveLamportsInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
-> = {
-  programAddress: Address<TProgram>;
-  accounts: {
-    /** Active or inactive source stake account */
-    sourceStake: TAccountMetas[0];
-    /** Mergeable destination stake account */
-    destinationStake: TAccountMetas[1];
-    /** Stake authority */
-    stakeAuthority: TAccountMetas[2];
-  };
-  data: MoveLamportsInstructionData;
-};
+> = { programAddress: Address<TProgram>; data: MoveLamportsInstructionData };
 
-export function parseMoveLamportsInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
->(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
-): ParsedMoveLamportsInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 3) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
+export function parseMoveLamportsInstruction<TProgram extends string>(
+  instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>
+): ParsedMoveLamportsInstruction<TProgram> {
   return {
     programAddress: instruction.programAddress,
-    accounts: {
-      sourceStake: getNextAccount(),
-      destinationStake: getNextAccount(),
-      stakeAuthority: getNextAccount(),
-    },
     data: getMoveLamportsInstructionDataDecoder().decode(instruction.data),
   };
 }

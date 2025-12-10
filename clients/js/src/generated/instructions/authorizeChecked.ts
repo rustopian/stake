@@ -14,7 +14,6 @@ import {
   getU32Encoder,
   transformEncoder,
   type AccountMeta,
-  type AccountSignerMeta,
   type Address,
   type FixedSizeCodec,
   type FixedSizeDecoder,
@@ -22,14 +21,9 @@ import {
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
-  type ReadonlyAccount,
-  type ReadonlySignerAccount,
   type ReadonlyUint8Array,
-  type TransactionSigner,
-  type WritableAccount,
 } from '@solana/kit';
 import { STAKE_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 import {
   getStakeAuthorizeDecoder,
   getStakeAuthorizeEncoder,
@@ -45,46 +39,10 @@ export function getAuthorizeCheckedDiscriminatorBytes() {
 
 export type AuthorizeCheckedInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountStake extends string | AccountMeta<string> = string,
-  TAccountClockSysvar extends
-    | string
-    | AccountMeta<string> = 'SysvarC1ock11111111111111111111111111111111',
-  TAccountAuthority extends string | AccountMeta<string> = string,
-  TAccountNewAuthority extends string | AccountMeta<string> = string,
-  TAccountLockupAuthority extends
-    | string
-    | AccountMeta<string>
-    | undefined = undefined,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountStake extends string
-        ? WritableAccount<TAccountStake>
-        : TAccountStake,
-      TAccountClockSysvar extends string
-        ? ReadonlyAccount<TAccountClockSysvar>
-        : TAccountClockSysvar,
-      TAccountAuthority extends string
-        ? ReadonlySignerAccount<TAccountAuthority> &
-            AccountSignerMeta<TAccountAuthority>
-        : TAccountAuthority,
-      TAccountNewAuthority extends string
-        ? ReadonlySignerAccount<TAccountNewAuthority> &
-            AccountSignerMeta<TAccountNewAuthority>
-        : TAccountNewAuthority,
-      ...(TAccountLockupAuthority extends undefined
-        ? []
-        : [
-            TAccountLockupAuthority extends string
-              ? ReadonlySignerAccount<TAccountLockupAuthority> &
-                  AccountSignerMeta<TAccountLockupAuthority>
-              : TAccountLockupAuthority,
-          ]),
-      ...TRemainingAccounts,
-    ]
-  >;
+  InstructionWithAccounts<TRemainingAccounts>;
 
 export type AuthorizeCheckedInstructionData = {
   discriminator: number;
@@ -122,154 +80,42 @@ export function getAuthorizeCheckedInstructionDataCodec(): FixedSizeCodec<
   );
 }
 
-export type AuthorizeCheckedInput<
-  TAccountStake extends string = string,
-  TAccountClockSysvar extends string = string,
-  TAccountAuthority extends string = string,
-  TAccountNewAuthority extends string = string,
-  TAccountLockupAuthority extends string = string,
-> = {
-  /** Stake account to be updated */
-  stake: Address<TAccountStake>;
-  /** Clock sysvar */
-  clockSysvar?: Address<TAccountClockSysvar>;
-  /** The stake or withdraw authority */
-  authority: TransactionSigner<TAccountAuthority>;
-  /** The new stake or withdraw authority */
-  newAuthority: TransactionSigner<TAccountNewAuthority>;
-  /** Lockup authority, if updating `StakeAuthorize::Withdrawer` before lockup expiration */
-  lockupAuthority?: TransactionSigner<TAccountLockupAuthority>;
+export type AuthorizeCheckedInput = {
   stakeAuthorize: AuthorizeCheckedInstructionDataArgs['stakeAuthorize'];
 };
 
 export function getAuthorizeCheckedInstruction<
-  TAccountStake extends string,
-  TAccountClockSysvar extends string,
-  TAccountAuthority extends string,
-  TAccountNewAuthority extends string,
-  TAccountLockupAuthority extends string,
   TProgramAddress extends Address = typeof STAKE_PROGRAM_ADDRESS,
 >(
-  input: AuthorizeCheckedInput<
-    TAccountStake,
-    TAccountClockSysvar,
-    TAccountAuthority,
-    TAccountNewAuthority,
-    TAccountLockupAuthority
-  >,
+  input: AuthorizeCheckedInput,
   config?: { programAddress?: TProgramAddress }
-): AuthorizeCheckedInstruction<
-  TProgramAddress,
-  TAccountStake,
-  TAccountClockSysvar,
-  TAccountAuthority,
-  TAccountNewAuthority,
-  TAccountLockupAuthority
-> {
+): AuthorizeCheckedInstruction<TProgramAddress> {
   // Program address.
   const programAddress = config?.programAddress ?? STAKE_PROGRAM_ADDRESS;
-
-  // Original accounts.
-  const originalAccounts = {
-    stake: { value: input.stake ?? null, isWritable: true },
-    clockSysvar: { value: input.clockSysvar ?? null, isWritable: false },
-    authority: { value: input.authority ?? null, isWritable: false },
-    newAuthority: { value: input.newAuthority ?? null, isWritable: false },
-    lockupAuthority: {
-      value: input.lockupAuthority ?? null,
-      isWritable: false,
-    },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
 
   // Original args.
   const args = { ...input };
 
-  // Resolve default values.
-  if (!accounts.clockSysvar.value) {
-    accounts.clockSysvar.value =
-      'SysvarC1ock11111111111111111111111111111111' as Address<'SysvarC1ock11111111111111111111111111111111'>;
-  }
-
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'omitted');
   return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.stake),
-      getAccountMeta(accounts.clockSysvar),
-      getAccountMeta(accounts.authority),
-      getAccountMeta(accounts.newAuthority),
-      getAccountMeta(accounts.lockupAuthority),
-    ].filter(<T>(x: T | undefined): x is T => x !== undefined),
     data: getAuthorizeCheckedInstructionDataEncoder().encode(
       args as AuthorizeCheckedInstructionDataArgs
     ),
     programAddress,
-  } as AuthorizeCheckedInstruction<
-    TProgramAddress,
-    TAccountStake,
-    TAccountClockSysvar,
-    TAccountAuthority,
-    TAccountNewAuthority,
-    TAccountLockupAuthority
-  >);
+  } as AuthorizeCheckedInstruction<TProgramAddress>);
 }
 
 export type ParsedAuthorizeCheckedInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
   programAddress: Address<TProgram>;
-  accounts: {
-    /** Stake account to be updated */
-    stake: TAccountMetas[0];
-    /** Clock sysvar */
-    clockSysvar: TAccountMetas[1];
-    /** The stake or withdraw authority */
-    authority: TAccountMetas[2];
-    /** The new stake or withdraw authority */
-    newAuthority: TAccountMetas[3];
-    /** Lockup authority, if updating `StakeAuthorize::Withdrawer` before lockup expiration */
-    lockupAuthority?: TAccountMetas[4] | undefined;
-  };
   data: AuthorizeCheckedInstructionData;
 };
 
-export function parseAuthorizeCheckedInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
->(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
-): ParsedAuthorizeCheckedInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 4) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
-  let optionalAccountsRemaining = instruction.accounts.length - 4;
-  const getNextOptionalAccount = () => {
-    if (optionalAccountsRemaining === 0) return undefined;
-    optionalAccountsRemaining -= 1;
-    return getNextAccount();
-  };
+export function parseAuthorizeCheckedInstruction<TProgram extends string>(
+  instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>
+): ParsedAuthorizeCheckedInstruction<TProgram> {
   return {
     programAddress: instruction.programAddress,
-    accounts: {
-      stake: getNextAccount(),
-      clockSysvar: getNextAccount(),
-      authority: getNextAccount(),
-      newAuthority: getNextAccount(),
-      lockupAuthority: getNextOptionalAccount(),
-    },
     data: getAuthorizeCheckedInstructionDataDecoder().decode(instruction.data),
   };
 }

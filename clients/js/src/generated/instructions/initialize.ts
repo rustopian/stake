@@ -21,12 +21,9 @@ import {
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
-  type ReadonlyAccount,
   type ReadonlyUint8Array,
-  type WritableAccount,
 } from '@solana/kit';
 import { STAKE_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 import {
   getAuthorizedDecoder,
   getAuthorizedEncoder,
@@ -46,24 +43,10 @@ export function getInitializeDiscriminatorBytes() {
 
 export type InitializeInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountStake extends string | AccountMeta<string> = string,
-  TAccountRentSysvar extends
-    | string
-    | AccountMeta<string> = 'SysvarRent111111111111111111111111111111111',
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountStake extends string
-        ? WritableAccount<TAccountStake>
-        : TAccountStake,
-      TAccountRentSysvar extends string
-        ? ReadonlyAccount<TAccountRentSysvar>
-        : TAccountRentSysvar,
-      ...TRemainingAccounts,
-    ]
-  >;
+  InstructionWithAccounts<TRemainingAccounts>;
 
 export type InitializeInstructionData = {
   discriminator: number;
@@ -105,100 +88,40 @@ export function getInitializeInstructionDataCodec(): FixedSizeCodec<
   );
 }
 
-export type InitializeInput<
-  TAccountStake extends string = string,
-  TAccountRentSysvar extends string = string,
-> = {
-  /** Uninitialized stake account */
-  stake: Address<TAccountStake>;
-  /** Rent sysvar */
-  rentSysvar?: Address<TAccountRentSysvar>;
+export type InitializeInput = {
   arg0: InitializeInstructionDataArgs['arg0'];
   arg1: InitializeInstructionDataArgs['arg1'];
 };
 
 export function getInitializeInstruction<
-  TAccountStake extends string,
-  TAccountRentSysvar extends string,
   TProgramAddress extends Address = typeof STAKE_PROGRAM_ADDRESS,
 >(
-  input: InitializeInput<TAccountStake, TAccountRentSysvar>,
+  input: InitializeInput,
   config?: { programAddress?: TProgramAddress }
-): InitializeInstruction<TProgramAddress, TAccountStake, TAccountRentSysvar> {
+): InitializeInstruction<TProgramAddress> {
   // Program address.
   const programAddress = config?.programAddress ?? STAKE_PROGRAM_ADDRESS;
-
-  // Original accounts.
-  const originalAccounts = {
-    stake: { value: input.stake ?? null, isWritable: true },
-    rentSysvar: { value: input.rentSysvar ?? null, isWritable: false },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
 
   // Original args.
   const args = { ...input };
 
-  // Resolve default values.
-  if (!accounts.rentSysvar.value) {
-    accounts.rentSysvar.value =
-      'SysvarRent111111111111111111111111111111111' as Address<'SysvarRent111111111111111111111111111111111'>;
-  }
-
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'omitted');
   return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.stake),
-      getAccountMeta(accounts.rentSysvar),
-    ],
     data: getInitializeInstructionDataEncoder().encode(
       args as InitializeInstructionDataArgs
     ),
     programAddress,
-  } as InitializeInstruction<
-    TProgramAddress,
-    TAccountStake,
-    TAccountRentSysvar
-  >);
+  } as InitializeInstruction<TProgramAddress>);
 }
 
 export type ParsedInitializeInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
-> = {
-  programAddress: Address<TProgram>;
-  accounts: {
-    /** Uninitialized stake account */
-    stake: TAccountMetas[0];
-    /** Rent sysvar */
-    rentSysvar: TAccountMetas[1];
-  };
-  data: InitializeInstructionData;
-};
+> = { programAddress: Address<TProgram>; data: InitializeInstructionData };
 
-export function parseInitializeInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
->(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
-): ParsedInitializeInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 2) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
+export function parseInitializeInstruction<TProgram extends string>(
+  instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>
+): ParsedInitializeInstruction<TProgram> {
   return {
     programAddress: instruction.programAddress,
-    accounts: { stake: getNextAccount(), rentSysvar: getNextAccount() },
     data: getInitializeInstructionDataDecoder().decode(instruction.data),
   };
 }

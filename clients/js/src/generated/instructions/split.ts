@@ -16,7 +16,6 @@ import {
   getU64Encoder,
   transformEncoder,
   type AccountMeta,
-  type AccountSignerMeta,
   type Address,
   type FixedSizeCodec,
   type FixedSizeDecoder,
@@ -24,13 +23,9 @@ import {
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
-  type ReadonlySignerAccount,
   type ReadonlyUint8Array,
-  type TransactionSigner,
-  type WritableAccount,
 } from '@solana/kit';
 import { STAKE_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const SPLIT_DISCRIMINATOR = 3;
 
@@ -40,27 +35,10 @@ export function getSplitDiscriminatorBytes() {
 
 export type SplitInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountStake extends string | AccountMeta<string> = string,
-  TAccountSplitStake extends string | AccountMeta<string> = string,
-  TAccountStakeAuthority extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountStake extends string
-        ? WritableAccount<TAccountStake>
-        : TAccountStake,
-      TAccountSplitStake extends string
-        ? WritableAccount<TAccountSplitStake>
-        : TAccountSplitStake,
-      TAccountStakeAuthority extends string
-        ? ReadonlySignerAccount<TAccountStakeAuthority> &
-            AccountSignerMeta<TAccountStakeAuthority>
-        : TAccountStakeAuthority,
-      ...TRemainingAccounts,
-    ]
-  >;
+  InstructionWithAccounts<TRemainingAccounts>;
 
 export type SplitInstructionData = { discriminator: number; args: bigint };
 
@@ -93,111 +71,39 @@ export function getSplitInstructionDataCodec(): FixedSizeCodec<
   );
 }
 
-export type SplitInput<
-  TAccountStake extends string = string,
-  TAccountSplitStake extends string = string,
-  TAccountStakeAuthority extends string = string,
-> = {
-  /** Stake account to be split; must be in the Initialized or Stake state */
-  stake: Address<TAccountStake>;
-  /** Uninitialized stake account that will take the split-off amount */
-  splitStake: Address<TAccountSplitStake>;
-  /** Stake authority */
-  stakeAuthority: TransactionSigner<TAccountStakeAuthority>;
+export type SplitInput = {
   args: SplitInstructionDataArgs['args'];
 };
 
 export function getSplitInstruction<
-  TAccountStake extends string,
-  TAccountSplitStake extends string,
-  TAccountStakeAuthority extends string,
   TProgramAddress extends Address = typeof STAKE_PROGRAM_ADDRESS,
 >(
-  input: SplitInput<TAccountStake, TAccountSplitStake, TAccountStakeAuthority>,
+  input: SplitInput,
   config?: { programAddress?: TProgramAddress }
-): SplitInstruction<
-  TProgramAddress,
-  TAccountStake,
-  TAccountSplitStake,
-  TAccountStakeAuthority
-> {
+): SplitInstruction<TProgramAddress> {
   // Program address.
   const programAddress = config?.programAddress ?? STAKE_PROGRAM_ADDRESS;
-
-  // Original accounts.
-  const originalAccounts = {
-    stake: { value: input.stake ?? null, isWritable: true },
-    splitStake: { value: input.splitStake ?? null, isWritable: true },
-    stakeAuthority: { value: input.stakeAuthority ?? null, isWritable: false },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
 
   // Original args.
   const args = { ...input };
 
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'omitted');
   return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.stake),
-      getAccountMeta(accounts.splitStake),
-      getAccountMeta(accounts.stakeAuthority),
-    ],
     data: getSplitInstructionDataEncoder().encode(
       args as SplitInstructionDataArgs
     ),
     programAddress,
-  } as SplitInstruction<
-    TProgramAddress,
-    TAccountStake,
-    TAccountSplitStake,
-    TAccountStakeAuthority
-  >);
+  } as SplitInstruction<TProgramAddress>);
 }
 
 export type ParsedSplitInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
-> = {
-  programAddress: Address<TProgram>;
-  accounts: {
-    /** Stake account to be split; must be in the Initialized or Stake state */
-    stake: TAccountMetas[0];
-    /** Uninitialized stake account that will take the split-off amount */
-    splitStake: TAccountMetas[1];
-    /** Stake authority */
-    stakeAuthority: TAccountMetas[2];
-  };
-  data: SplitInstructionData;
-};
+> = { programAddress: Address<TProgram>; data: SplitInstructionData };
 
-export function parseSplitInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
->(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
-): ParsedSplitInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 3) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
+export function parseSplitInstruction<TProgram extends string>(
+  instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>
+): ParsedSplitInstruction<TProgram> {
   return {
     programAddress: instruction.programAddress,
-    accounts: {
-      stake: getNextAccount(),
-      splitStake: getNextAccount(),
-      stakeAuthority: getNextAccount(),
-    },
     data: getSplitInstructionDataDecoder().decode(instruction.data),
   };
 }

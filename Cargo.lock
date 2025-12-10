@@ -897,8 +897,9 @@ dependencies = [
 
 [[package]]
 name = "codama"
-version = "0.6.5"
-source = "git+https://github.com/rustopian/codama-rs?branch=custom-tuple-arg-names#e9631325427ba7f43ed04ab438a3a52ac901cd1e"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1b9a12a9c4cbf26ead9b3677b7894a5b29852f4b361e292adc068dc5a16d304"
 dependencies = [
  "codama-errors",
  "codama-korok-plugins",
@@ -912,8 +913,9 @@ dependencies = [
 
 [[package]]
 name = "codama-attributes"
-version = "0.6.5"
-source = "git+https://github.com/rustopian/codama-rs?branch=custom-tuple-arg-names#e9631325427ba7f43ed04ab438a3a52ac901cd1e"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c25e35ad129a7392ff962899e8a45631c83211251793d9ee63f905425d21940c"
 dependencies = [
  "codama-errors",
  "codama-nodes",
@@ -926,8 +928,9 @@ dependencies = [
 
 [[package]]
 name = "codama-errors"
-version = "0.6.5"
-source = "git+https://github.com/rustopian/codama-rs?branch=custom-tuple-arg-names#e9631325427ba7f43ed04ab438a3a52ac901cd1e"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca73100adb083319ec7546aba9710d247e539089310b6e19557328c40497a9f3"
 dependencies = [
  "cargo_toml",
  "proc-macro2",
@@ -938,8 +941,9 @@ dependencies = [
 
 [[package]]
 name = "codama-korok-plugins"
-version = "0.6.5"
-source = "git+https://github.com/rustopian/codama-rs?branch=custom-tuple-arg-names#e9631325427ba7f43ed04ab438a3a52ac901cd1e"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe750005bf590691a77dd3a497596bf58abb075eeef584ba9512c5aa81637749"
 dependencies = [
  "codama-errors",
  "codama-korok-visitors",
@@ -948,8 +952,9 @@ dependencies = [
 
 [[package]]
 name = "codama-korok-visitors"
-version = "0.6.5"
-source = "git+https://github.com/rustopian/codama-rs?branch=custom-tuple-arg-names#e9631325427ba7f43ed04ab438a3a52ac901cd1e"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5514533e4887776210b0ce20b39e81ce288f548d1068692bae884d6476399b3d"
 dependencies = [
  "cargo_toml",
  "codama-attributes",
@@ -963,8 +968,9 @@ dependencies = [
 
 [[package]]
 name = "codama-koroks"
-version = "0.6.5"
-source = "git+https://github.com/rustopian/codama-rs?branch=custom-tuple-arg-names#e9631325427ba7f43ed04ab438a3a52ac901cd1e"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02770090e0fc6d0cd5c94c18885bf064fa20109ddc1b83fd2c65f0f373ea9aca"
 dependencies = [
  "codama-attributes",
  "codama-errors",
@@ -978,8 +984,9 @@ dependencies = [
 
 [[package]]
 name = "codama-macros"
-version = "0.6.5"
-source = "git+https://github.com/rustopian/codama-rs?branch=custom-tuple-arg-names#e9631325427ba7f43ed04ab438a3a52ac901cd1e"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73f2e2cc75108c8ef9a89856a117b6f16419ffee2bc20d5aa91bd115c5f4526c"
 dependencies = [
  "codama-attributes",
  "codama-errors",
@@ -992,8 +999,9 @@ dependencies = [
 
 [[package]]
 name = "codama-nodes"
-version = "0.6.5"
-source = "git+https://github.com/rustopian/codama-rs?branch=custom-tuple-arg-names#e9631325427ba7f43ed04ab438a3a52ac901cd1e"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d3c3675cd3447d712328c07543326f94d50885a3351e203f46e473b8a15c49e"
 dependencies = [
  "codama-errors",
  "codama-nodes-derive",
@@ -1004,8 +1012,9 @@ dependencies = [
 
 [[package]]
 name = "codama-nodes-derive"
-version = "0.6.5"
-source = "git+https://github.com/rustopian/codama-rs?branch=custom-tuple-arg-names#e9631325427ba7f43ed04ab438a3a52ac901cd1e"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3cd8b569963f7357ed3fa00d59ef67379b74777a136527a08270af08574b0e3f"
 dependencies = [
  "codama-errors",
  "codama-syn-helpers",
@@ -1017,8 +1026,9 @@ dependencies = [
 
 [[package]]
 name = "codama-stores"
-version = "0.6.5"
-source = "git+https://github.com/rustopian/codama-rs?branch=custom-tuple-arg-names#e9631325427ba7f43ed04ab438a3a52ac901cd1e"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82ae76cd84b29eb4c586ffb6c37231be716f0ba2df7634c02388d612529248aa"
 dependencies = [
  "cargo_toml",
  "codama-errors",
@@ -1028,8 +1038,9 @@ dependencies = [
 
 [[package]]
 name = "codama-syn-helpers"
-version = "0.6.5"
-source = "git+https://github.com/rustopian/codama-rs?branch=custom-tuple-arg-names#e9631325427ba7f43ed04ab438a3a52ac901cd1e"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c978fea8cafe527e09f3f5583b642a8e1d2c05eea138fb51f0357ca73bea243"
 dependencies = [
  "codama-errors",
  "derive_more",

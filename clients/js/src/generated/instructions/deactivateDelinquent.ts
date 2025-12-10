@@ -21,12 +21,9 @@ import {
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
-  type ReadonlyAccount,
   type ReadonlyUint8Array,
-  type WritableAccount,
 } from '@solana/kit';
 import { STAKE_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const DEACTIVATE_DELINQUENT_DISCRIMINATOR = 14;
 
@@ -36,26 +33,10 @@ export function getDeactivateDelinquentDiscriminatorBytes() {
 
 export type DeactivateDelinquentInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountStake extends string | AccountMeta<string> = string,
-  TAccountDelinquentVote extends string | AccountMeta<string> = string,
-  TAccountReferenceVote extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountStake extends string
-        ? WritableAccount<TAccountStake>
-        : TAccountStake,
-      TAccountDelinquentVote extends string
-        ? ReadonlyAccount<TAccountDelinquentVote>
-        : TAccountDelinquentVote,
-      TAccountReferenceVote extends string
-        ? ReadonlyAccount<TAccountReferenceVote>
-        : TAccountReferenceVote,
-      ...TRemainingAccounts,
-    ]
-  >;
+  InstructionWithAccounts<TRemainingAccounts>;
 
 export type DeactivateDelinquentInstructionData = { discriminator: number };
 
@@ -85,109 +66,34 @@ export function getDeactivateDelinquentInstructionDataCodec(): FixedSizeCodec<
   );
 }
 
-export type DeactivateDelinquentInput<
-  TAccountStake extends string = string,
-  TAccountDelinquentVote extends string = string,
-  TAccountReferenceVote extends string = string,
-> = {
-  /** Delegated stake account */
-  stake: Address<TAccountStake>;
-  /** Delinquent vote account for the delegated stake account */
-  delinquentVote: Address<TAccountDelinquentVote>;
-  /** Reference vote account that has voted at least once in the last `MINIMUM_DELINQUENT_EPOCHS_FOR_DEACTIVATION` epochs */
-  referenceVote: Address<TAccountReferenceVote>;
-};
+export type DeactivateDelinquentInput = {};
 
 export function getDeactivateDelinquentInstruction<
-  TAccountStake extends string,
-  TAccountDelinquentVote extends string,
-  TAccountReferenceVote extends string,
   TProgramAddress extends Address = typeof STAKE_PROGRAM_ADDRESS,
->(
-  input: DeactivateDelinquentInput<
-    TAccountStake,
-    TAccountDelinquentVote,
-    TAccountReferenceVote
-  >,
-  config?: { programAddress?: TProgramAddress }
-): DeactivateDelinquentInstruction<
-  TProgramAddress,
-  TAccountStake,
-  TAccountDelinquentVote,
-  TAccountReferenceVote
-> {
+>(config?: {
+  programAddress?: TProgramAddress;
+}): DeactivateDelinquentInstruction<TProgramAddress> {
   // Program address.
   const programAddress = config?.programAddress ?? STAKE_PROGRAM_ADDRESS;
 
-  // Original accounts.
-  const originalAccounts = {
-    stake: { value: input.stake ?? null, isWritable: true },
-    delinquentVote: { value: input.delinquentVote ?? null, isWritable: false },
-    referenceVote: { value: input.referenceVote ?? null, isWritable: false },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
-
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'omitted');
   return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.stake),
-      getAccountMeta(accounts.delinquentVote),
-      getAccountMeta(accounts.referenceVote),
-    ],
     data: getDeactivateDelinquentInstructionDataEncoder().encode({}),
     programAddress,
-  } as DeactivateDelinquentInstruction<
-    TProgramAddress,
-    TAccountStake,
-    TAccountDelinquentVote,
-    TAccountReferenceVote
-  >);
+  } as DeactivateDelinquentInstruction<TProgramAddress>);
 }
 
 export type ParsedDeactivateDelinquentInstruction<
   TProgram extends string = typeof STAKE_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
   programAddress: Address<TProgram>;
-  accounts: {
-    /** Delegated stake account */
-    stake: TAccountMetas[0];
-    /** Delinquent vote account for the delegated stake account */
-    delinquentVote: TAccountMetas[1];
-    /** Reference vote account that has voted at least once in the last `MINIMUM_DELINQUENT_EPOCHS_FOR_DEACTIVATION` epochs */
-    referenceVote: TAccountMetas[2];
-  };
   data: DeactivateDelinquentInstructionData;
 };
 
-export function parseDeactivateDelinquentInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
->(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
-): ParsedDeactivateDelinquentInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 3) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
+export function parseDeactivateDelinquentInstruction<TProgram extends string>(
+  instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>
+): ParsedDeactivateDelinquentInstruction<TProgram> {
   return {
     programAddress: instruction.programAddress,
-    accounts: {
-      stake: getNextAccount(),
-      delinquentVote: getNextAccount(),
-      referenceVote: getNextAccount(),
-    },
     data: getDeactivateDelinquentInstructionDataDecoder().decode(
       instruction.data
     ),

@@ -14,18 +14,7 @@ pub const AUTHORIZE_CHECKED_DISCRIMINATOR: u32 = 10;
 
 /// Accounts.
 #[derive(Debug)]
-pub struct AuthorizeChecked {
-    /// Stake account to be updated
-    pub stake: solana_pubkey::Pubkey,
-    /// Clock sysvar
-    pub clock_sysvar: solana_pubkey::Pubkey,
-    /// The stake or withdraw authority
-    pub authority: solana_pubkey::Pubkey,
-    /// The new stake or withdraw authority
-    pub new_authority: solana_pubkey::Pubkey,
-    /// Lockup authority, if updating `StakeAuthorize::Withdrawer` before lockup expiration
-    pub lockup_authority: Option<solana_pubkey::Pubkey>,
-}
+pub struct AuthorizeChecked {}
 
 impl AuthorizeChecked {
     pub fn instruction(
@@ -41,26 +30,7 @@ impl AuthorizeChecked {
         args: AuthorizeCheckedInstructionArgs,
         remaining_accounts: &[solana_instruction::AccountMeta],
     ) -> solana_instruction::Instruction {
-        let mut accounts = Vec::with_capacity(5 + remaining_accounts.len());
-        accounts.push(solana_instruction::AccountMeta::new(self.stake, false));
-        accounts.push(solana_instruction::AccountMeta::new_readonly(
-            self.clock_sysvar,
-            false,
-        ));
-        accounts.push(solana_instruction::AccountMeta::new_readonly(
-            self.authority,
-            true,
-        ));
-        accounts.push(solana_instruction::AccountMeta::new_readonly(
-            self.new_authority,
-            true,
-        ));
-        if let Some(lockup_authority) = self.lockup_authority {
-            accounts.push(solana_instruction::AccountMeta::new_readonly(
-                lockup_authority,
-                true,
-            ));
-        }
+        let mut accounts = Vec::with_capacity(remaining_accounts.len());
         accounts.extend_from_slice(remaining_accounts);
         let mut data = AuthorizeCheckedInstructionData::new().try_to_vec().unwrap();
         let mut args = args.try_to_vec().unwrap();
@@ -112,18 +82,8 @@ impl AuthorizeCheckedInstructionArgs {
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` stake
-///   1. `[optional]` clock_sysvar (default to `SysvarC1ock11111111111111111111111111111111`)
-///   2. `[signer]` authority
-///   3. `[signer]` new_authority
-///   4. `[signer, optional]` lockup_authority
 #[derive(Clone, Debug, Default)]
 pub struct AuthorizeCheckedBuilder {
-    stake: Option<solana_pubkey::Pubkey>,
-    clock_sysvar: Option<solana_pubkey::Pubkey>,
-    authority: Option<solana_pubkey::Pubkey>,
-    new_authority: Option<solana_pubkey::Pubkey>,
-    lockup_authority: Option<solana_pubkey::Pubkey>,
     stake_authorize: Option<StakeAuthorize>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
@@ -131,41 +91,6 @@ pub struct AuthorizeCheckedBuilder {
 impl AuthorizeCheckedBuilder {
     pub fn new() -> Self {
         Self::default()
-    }
-    /// Stake account to be updated
-    #[inline(always)]
-    pub fn stake(&mut self, stake: solana_pubkey::Pubkey) -> &mut Self {
-        self.stake = Some(stake);
-        self
-    }
-    /// `[optional account, default to 'SysvarC1ock11111111111111111111111111111111']`
-    /// Clock sysvar
-    #[inline(always)]
-    pub fn clock_sysvar(&mut self, clock_sysvar: solana_pubkey::Pubkey) -> &mut Self {
-        self.clock_sysvar = Some(clock_sysvar);
-        self
-    }
-    /// The stake or withdraw authority
-    #[inline(always)]
-    pub fn authority(&mut self, authority: solana_pubkey::Pubkey) -> &mut Self {
-        self.authority = Some(authority);
-        self
-    }
-    /// The new stake or withdraw authority
-    #[inline(always)]
-    pub fn new_authority(&mut self, new_authority: solana_pubkey::Pubkey) -> &mut Self {
-        self.new_authority = Some(new_authority);
-        self
-    }
-    /// `[optional account]`
-    /// Lockup authority, if updating `StakeAuthorize::Withdrawer` before lockup expiration
-    #[inline(always)]
-    pub fn lockup_authority(
-        &mut self,
-        lockup_authority: Option<solana_pubkey::Pubkey>,
-    ) -> &mut Self {
-        self.lockup_authority = lockup_authority;
-        self
     }
     #[inline(always)]
     pub fn stake_authorize(&mut self, stake_authorize: StakeAuthorize) -> &mut Self {
@@ -189,15 +114,7 @@ impl AuthorizeCheckedBuilder {
     }
     #[allow(clippy::clone_on_copy)]
     pub fn instruction(&self) -> solana_instruction::Instruction {
-        let accounts = AuthorizeChecked {
-            stake: self.stake.expect("stake is not set"),
-            clock_sysvar: self.clock_sysvar.unwrap_or(solana_pubkey::pubkey!(
-                "SysvarC1ock11111111111111111111111111111111"
-            )),
-            authority: self.authority.expect("authority is not set"),
-            new_authority: self.new_authority.expect("new_authority is not set"),
-            lockup_authority: self.lockup_authority,
-        };
+        let accounts = AuthorizeChecked {};
         let args = AuthorizeCheckedInstructionArgs {
             stake_authorize: self
                 .stake_authorize
@@ -209,34 +126,10 @@ impl AuthorizeCheckedBuilder {
     }
 }
 
-/// `authorize_checked` CPI accounts.
-pub struct AuthorizeCheckedCpiAccounts<'a, 'b> {
-    /// Stake account to be updated
-    pub stake: &'b solana_account_info::AccountInfo<'a>,
-    /// Clock sysvar
-    pub clock_sysvar: &'b solana_account_info::AccountInfo<'a>,
-    /// The stake or withdraw authority
-    pub authority: &'b solana_account_info::AccountInfo<'a>,
-    /// The new stake or withdraw authority
-    pub new_authority: &'b solana_account_info::AccountInfo<'a>,
-    /// Lockup authority, if updating `StakeAuthorize::Withdrawer` before lockup expiration
-    pub lockup_authority: Option<&'b solana_account_info::AccountInfo<'a>>,
-}
-
 /// `authorize_checked` CPI instruction.
 pub struct AuthorizeCheckedCpi<'a, 'b> {
     /// The program to invoke.
     pub __program: &'b solana_account_info::AccountInfo<'a>,
-    /// Stake account to be updated
-    pub stake: &'b solana_account_info::AccountInfo<'a>,
-    /// Clock sysvar
-    pub clock_sysvar: &'b solana_account_info::AccountInfo<'a>,
-    /// The stake or withdraw authority
-    pub authority: &'b solana_account_info::AccountInfo<'a>,
-    /// The new stake or withdraw authority
-    pub new_authority: &'b solana_account_info::AccountInfo<'a>,
-    /// Lockup authority, if updating `StakeAuthorize::Withdrawer` before lockup expiration
-    pub lockup_authority: Option<&'b solana_account_info::AccountInfo<'a>>,
     /// The arguments for the instruction.
     pub __args: AuthorizeCheckedInstructionArgs,
 }
@@ -244,16 +137,10 @@ pub struct AuthorizeCheckedCpi<'a, 'b> {
 impl<'a, 'b> AuthorizeCheckedCpi<'a, 'b> {
     pub fn new(
         program: &'b solana_account_info::AccountInfo<'a>,
-        accounts: AuthorizeCheckedCpiAccounts<'a, 'b>,
         args: AuthorizeCheckedInstructionArgs,
     ) -> Self {
         Self {
             __program: program,
-            stake: accounts.stake,
-            clock_sysvar: accounts.clock_sysvar,
-            authority: accounts.authority,
-            new_authority: accounts.new_authority,
-            lockup_authority: accounts.lockup_authority,
             __args: args,
         }
     }
@@ -280,26 +167,7 @@ impl<'a, 'b> AuthorizeCheckedCpi<'a, 'b> {
         signers_seeds: &[&[&[u8]]],
         remaining_accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)],
     ) -> solana_program_error::ProgramResult {
-        let mut accounts = Vec::with_capacity(5 + remaining_accounts.len());
-        accounts.push(solana_instruction::AccountMeta::new(*self.stake.key, false));
-        accounts.push(solana_instruction::AccountMeta::new_readonly(
-            *self.clock_sysvar.key,
-            false,
-        ));
-        accounts.push(solana_instruction::AccountMeta::new_readonly(
-            *self.authority.key,
-            true,
-        ));
-        accounts.push(solana_instruction::AccountMeta::new_readonly(
-            *self.new_authority.key,
-            true,
-        ));
-        if let Some(lockup_authority) = self.lockup_authority {
-            accounts.push(solana_instruction::AccountMeta::new_readonly(
-                *lockup_authority.key,
-                true,
-            ));
-        }
+        let mut accounts = Vec::with_capacity(remaining_accounts.len());
         remaining_accounts.iter().for_each(|remaining_account| {
             accounts.push(solana_instruction::AccountMeta {
                 pubkey: *remaining_account.0.key,
@@ -316,15 +184,8 @@ impl<'a, 'b> AuthorizeCheckedCpi<'a, 'b> {
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(6 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(1 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
-        account_infos.push(self.stake.clone());
-        account_infos.push(self.clock_sysvar.clone());
-        account_infos.push(self.authority.clone());
-        account_infos.push(self.new_authority.clone());
-        if let Some(lockup_authority) = self.lockup_authority {
-            account_infos.push(lockup_authority.clone());
-        }
         remaining_accounts
             .iter()
             .for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
@@ -341,11 +202,6 @@ impl<'a, 'b> AuthorizeCheckedCpi<'a, 'b> {
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` stake
-///   1. `[]` clock_sysvar
-///   2. `[signer]` authority
-///   3. `[signer]` new_authority
-///   4. `[signer, optional]` lockup_authority
 #[derive(Clone, Debug)]
 pub struct AuthorizeCheckedCpiBuilder<'a, 'b> {
     instruction: Box<AuthorizeCheckedCpiBuilderInstruction<'a, 'b>>,
@@ -355,55 +211,10 @@ impl<'a, 'b> AuthorizeCheckedCpiBuilder<'a, 'b> {
     pub fn new(program: &'b solana_account_info::AccountInfo<'a>) -> Self {
         let instruction = Box::new(AuthorizeCheckedCpiBuilderInstruction {
             __program: program,
-            stake: None,
-            clock_sysvar: None,
-            authority: None,
-            new_authority: None,
-            lockup_authority: None,
             stake_authorize: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
-    }
-    /// Stake account to be updated
-    #[inline(always)]
-    pub fn stake(&mut self, stake: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
-        self.instruction.stake = Some(stake);
-        self
-    }
-    /// Clock sysvar
-    #[inline(always)]
-    pub fn clock_sysvar(
-        &mut self,
-        clock_sysvar: &'b solana_account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.clock_sysvar = Some(clock_sysvar);
-        self
-    }
-    /// The stake or withdraw authority
-    #[inline(always)]
-    pub fn authority(&mut self, authority: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
-        self.instruction.authority = Some(authority);
-        self
-    }
-    /// The new stake or withdraw authority
-    #[inline(always)]
-    pub fn new_authority(
-        &mut self,
-        new_authority: &'b solana_account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.new_authority = Some(new_authority);
-        self
-    }
-    /// `[optional account]`
-    /// Lockup authority, if updating `StakeAuthorize::Withdrawer` before lockup expiration
-    #[inline(always)]
-    pub fn lockup_authority(
-        &mut self,
-        lockup_authority: Option<&'b solana_account_info::AccountInfo<'a>>,
-    ) -> &mut Self {
-        self.instruction.lockup_authority = lockup_authority;
-        self
     }
     #[inline(always)]
     pub fn stake_authorize(&mut self, stake_authorize: StakeAuthorize) -> &mut Self {
@@ -453,22 +264,6 @@ impl<'a, 'b> AuthorizeCheckedCpiBuilder<'a, 'b> {
         };
         let instruction = AuthorizeCheckedCpi {
             __program: self.instruction.__program,
-
-            stake: self.instruction.stake.expect("stake is not set"),
-
-            clock_sysvar: self
-                .instruction
-                .clock_sysvar
-                .expect("clock_sysvar is not set"),
-
-            authority: self.instruction.authority.expect("authority is not set"),
-
-            new_authority: self
-                .instruction
-                .new_authority
-                .expect("new_authority is not set"),
-
-            lockup_authority: self.instruction.lockup_authority,
             __args: args,
         };
         instruction.invoke_signed_with_remaining_accounts(
@@ -481,11 +276,6 @@ impl<'a, 'b> AuthorizeCheckedCpiBuilder<'a, 'b> {
 #[derive(Clone, Debug)]
 struct AuthorizeCheckedCpiBuilderInstruction<'a, 'b> {
     __program: &'b solana_account_info::AccountInfo<'a>,
-    stake: Option<&'b solana_account_info::AccountInfo<'a>>,
-    clock_sysvar: Option<&'b solana_account_info::AccountInfo<'a>>,
-    authority: Option<&'b solana_account_info::AccountInfo<'a>>,
-    new_authority: Option<&'b solana_account_info::AccountInfo<'a>>,
-    lockup_authority: Option<&'b solana_account_info::AccountInfo<'a>>,
     stake_authorize: Option<StakeAuthorize>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(&'b solana_account_info::AccountInfo<'a>, bool, bool)>,
